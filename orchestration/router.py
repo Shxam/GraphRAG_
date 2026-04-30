@@ -17,6 +17,7 @@ from pipelines.baseline import BaselinePipeline
 from pipelines.graphrag import GraphRAGPipeline
 from pipelines.comparator import Comparator
 from tee.enclave_runner import EnclaveRunner
+from orchestration.deduplicator import AlertDeduplicator
 
 
 app = FastAPI(title="PostMortemIQ API", version="1.0.0")
@@ -26,6 +27,7 @@ enclave = EnclaveRunner()
 baseline_pipeline = BaselinePipeline()
 graphrag_pipeline = GraphRAGPipeline()
 comparator = Comparator()
+deduplicator = AlertDeduplicator(window_seconds=300)
 
 
 class IncidentRequest(BaseModel):
@@ -86,8 +88,25 @@ async def analyze_incident(request: IncidentRequest) -> Dict[str, Any]:
         "alert_id": request.alert_id or f"alert_{request.incident_id.split('_')[1]}",
         "alert_name": request.alert_name or "Unknown alert",
         "severity": request.severity,
-        "start_time": request.start_time or "2024-01-15T14:33:00Z"
+        "start_time": request.start_time or "2024-01-15T14:33:00Z",
+        "service": request.alert_name or "unknown",
+        "error_type": request.severity,
+        "component": request.alert_id or request.incident_id
     }
+    
+    # Check for duplicates
+    if deduplicator.is_duplicate(incident_data):
+        import logging
+        logging.warning(
+            f"Duplicate alert blocked: {request.incident_id} "
+            f"(fingerprint: {deduplicator.generate_fingerprint(incident_data)})"
+        )
+        return {
+            "status": "duplicate",
+            "incident_id": request.incident_id,
+            "message": "Alert is a duplicate within the deduplication window",
+            "dedup_stats": deduplicator.get_stats()
+        }
     
     # Run both pipelines in parallel
     baseline_task = asyncio.create_task(

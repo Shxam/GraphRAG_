@@ -147,7 +147,7 @@ Dependencies:
         context = self.assemble_context(incident_id, incident_data)
         
         # Build prompt
-        prompt = self.prompt_builder.build_baseline_prompt(context)
+        prompt = self.prompt_builder.build_baseline_prompt(context, incident_id)
         
         # Call LLM
         llm_result = self.llm_client.call_llm(prompt)
