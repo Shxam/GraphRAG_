@@ -15,12 +15,16 @@ class GraphLoader:
     """Loads synthetic data into TigerGraph"""
     
     def __init__(self):
-        self.conn = tg.TigerGraphConnection(
-            host=os.getenv("TIGERGRAPH_HOST"),
-            username=os.getenv("TIGERGRAPH_USERNAME"),
-            password=os.getenv("TIGERGRAPH_PASSWORD"),
-            graphname=os.getenv("TIGERGRAPH_GRAPH_NAME", "IncidentGraph")
-        )
+        self.conn = None
+        try:
+            self.conn = tg.TigerGraphConnection(
+                host=os.getenv("TIGERGRAPH_HOST"),
+                username=os.getenv("TIGERGRAPH_USERNAME"),
+                password=os.getenv("TIGERGRAPH_PASSWORD"),
+                graphname=os.getenv("TIGERGRAPH_GRAPH_NAME", "IncidentGraph")
+            )
+        except Exception:
+            pass
         self.data = None
     
     def load_data_file(self, filename="data/synthetic_incidents.json"):

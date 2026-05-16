@@ -1,0 +1,1 @@
+from orchestration.router import app, analyze_sync; from pydantic import BaseModel; import json; class R(BaseModel): incident_id='INC-1'; alert_name='A'; severity='B'; service='C'; print(analyze_sync(R()))

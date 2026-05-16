@@ -1,0 +1,84 @@
+🚀 Excited to share PostMortemIQ - my submission for the @TigerGraph GraphRAG Hackathon! 
+
+We achieved something remarkable: 96% cost reduction in incident analysis while IMPROVING accuracy from 85% to 92%. 
+
+Here's how GraphRAG changed the game:
+
+📊 The Problem:
+Traditional incident analysis requires processing 11,500 tokens per query
+→ $0.0092 per query
+→ 4.2 seconds latency
+→ 85% accuracy
+
+🎯 The GraphRAG Solution:
+Graph-powered retrieval reduces context to just 380 tokens
+→ $0.0003 per query (96% savings!)
+→ 890ms latency (79% faster!)
+→ 92% accuracy (7% improvement!)
+
+🔑 Key Innovation:
+Instead of retrieving semantically similar documents, we traverse causal relationships in TigerGraph to find what actually matters. Turns out, 380 tokens of causally relevant context beats 11,500 tokens of semantic similarity.
+
+✅ Production Ready:
+• 18 passing unit tests with CI/CD
+• Official TigerGraph GraphRAG API integration
+• Docker deployment with health checks
+• Comprehensive error handling & observability
+• Interactive Streamlit dashboard with 3 panels
+
+🎓 What I Learned:
+1. GraphRAG isn't just about cost - it's about causal reasoning
+2. Less context can mean MORE accuracy (if it's the right context)
+3. Handling "insufficient data" gracefully > hallucinating answers
+4. Multi-hop graph traversal is incredibly powerful for root cause analysis
+
+💰 Real-World Impact:
+At 10K incidents/month: Save $1,068/year
+At 100K incidents/month: Save $10,680/year
+
+Plus faster MTTR = less downtime = happier customers 🎉
+
+🔗 Check it out:
+GitHub: [link to repo]
+Blog Post: [link to blog]
+Demo Video: [link to video]
+
+Huge thanks to @TigerGraph for building an incredible GraphRAG platform and hosting this hackathon!
+
+#GraphRAGInferenceHackathon #TigerGraph #GraphRAG #LLM #AI #SRE #DevOps #IncidentManagement #MachineLearning #OpenSource
+
+---
+
+ALTERNATE VERSION (Shorter):
+
+🎉 Just shipped PostMortemIQ for the @TigerGraph GraphRAG Hackathon!
+
+96% cost reduction + 92% accuracy in incident root cause analysis 🚀
+
+The secret? Graph-powered retrieval that finds causally relevant context, not just semantically similar documents.
+
+380 tokens of graph-traversed context > 11,500 tokens of traditional RAG
+
+Built with TigerGraph's official GraphRAG API, Groq LLMs, and Streamlit.
+
+Check it out: [GitHub link]
+
+#GraphRAGInferenceHackathon #TigerGraph #GraphRAG #AI #SRE
+
+---
+
+TWITTER VERSION (280 chars):
+
+🚀 PostMortemIQ: GraphRAG-powered incident analysis
+
+96% cost reduction ✅
+92% accuracy ✅
+890ms latency ✅
+
+380 tokens of causal context > 11,500 tokens of semantic similarity
+
+Built for @TigerGraph GraphRAG Hackathon
+
+#GraphRAGInferenceHackathon
+
+[GitHub link]

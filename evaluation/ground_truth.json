@@ -1,0 +1,330 @@
+[
+  {
+    "incident_id": "INC-1005",
+    "alert": {"alert_name": "High 5xx errors in auth-svc", "severity": "critical"},
+    "root_cause": "config_3",
+    "ground_truth_summary": "JWT_EXPIRY changed from 3600 to 60 seconds in auth-svc deployment v2.4.1, causing token expiry failures. Rollback to v2.4.0 resolved the issue.",
+    "affected_services": ["auth-svc", "api-gateway"],
+    "resolution": "Rollback deployment v2.4.1 to v2.4.0 and revert JWT_EXPIRY to 3600 seconds"
+  },
+  {
+    "incident_id": "incident_1",
+    "alert": {"alert_name": "High error rate in auth-svc", "severity": "critical"},
+    "root_cause": "config_change",
+    "ground_truth_summary": "JWT_EXPIRY configuration change in auth-svc caused authentication token failures across dependent services.",
+    "affected_services": ["auth-svc", "payment-svc", "user-svc"],
+    "resolution": "Revert JWT_EXPIRY configuration and restart affected services"
+  },
+  {
+    "incident_id": "incident_2",
+    "alert": {"alert_name": "Database connection pool exhaustion", "severity": "critical"},
+    "root_cause": "connection_leak",
+    "ground_truth_summary": "New api-svc deployment introduced a database connection leak causing pool exhaustion and 500 errors.",
+    "affected_services": ["api-svc", "database"],
+    "resolution": "Rollback api-svc deployment and fix connection leak"
+  },
+  {
+    "incident_id": "incident_3",
+    "alert": {"alert_name": "Redis cache eviction issue", "severity": "high"},
+    "root_cause": "config_redis",
+    "ground_truth_summary": "Redis maxmemory-policy changed from allkeys-lru to noeviction, blocking writes and causing cache failures.",
+    "affected_services": ["cache-svc", "api-svc"],
+    "resolution": "Revert maxmemory-policy to allkeys-lru in Redis config"
+  },
+  {
+    "incident_id": "incident_4",
+    "alert": {"alert_name": "Kubernetes pod eviction storm", "severity": "critical"},
+    "root_cause": "deploy_monitor",
+    "ground_truth_summary": "monitoring-agent deployment v2.4.1 consumed excessive memory causing Kubernetes to evict pods across nodes.",
+    "affected_services": ["monitoring-agent", "multiple-services"],
+    "resolution": "Rollback monitoring-agent to previous version and add resource limits"
+  },
+  {
+    "incident_id": "incident_5",
+    "alert": {"alert_name": "Database replication lag", "severity": "high"},
+    "root_cause": "long_running_transaction",
+    "ground_truth_summary": "Long-running transaction on primary database blocked replication, causing read replica lag over 30 seconds.",
+    "affected_services": ["database", "read-replicas"],
+    "resolution": "Kill long-running transaction and tune query timeout settings"
+  },
+  {
+    "incident_id": "incident_6",
+    "alert": {"alert_name": "API gateway timeout cascade", "severity": "critical"},
+    "root_cause": "config_timeout",
+    "ground_truth_summary": "Load balancer timeout changed from 30s to 1s, causing api-gateway to timeout on all upstream requests.",
+    "affected_services": ["api-gateway", "load-balancer"],
+    "resolution": "Restore LB_TIMEOUT to 30s in load balancer configuration"
+  },
+  {
+    "incident_id": "incident_7",
+    "alert": {"alert_name": "SSL certificate expiry", "severity": "critical"},
+    "root_cause": "cert_expiry",
+    "ground_truth_summary": "SSL certificate for the CDN endpoint expired causing HTTPS handshake failures for all external traffic.",
+    "affected_services": ["cdn", "api-gateway"],
+    "resolution": "Renew SSL certificate and deploy to CDN endpoints"
+  },
+  {
+    "incident_id": "incident_8",
+    "alert": {"alert_name": "Kafka consumer lag spike", "severity": "high"},
+    "root_cause": "deploy_ep",
+    "ground_truth_summary": "event-processor deployment v1.3.0 introduced a slow message deserialization bug causing Kafka consumer lag.",
+    "affected_services": ["event-processor", "kafka"],
+    "resolution": "Rollback event-processor to v1.2.0 and fix deserialization code"
+  },
+  {
+    "incident_id": "incident_9",
+    "alert": {"alert_name": "Daylight saving time bug", "severity": "high"},
+    "root_cause": "timezone_bug",
+    "ground_truth_summary": "Scheduler used local timezone instead of UTC causing batch jobs to run at wrong times during DST transition.",
+    "affected_services": ["scheduler", "batch-jobs"],
+    "resolution": "Fix scheduler to use UTC and reschedule missed batch jobs"
+  },
+  {
+    "incident_id": "incident_10",
+    "alert": {"alert_name": "Memory leak in payment service", "severity": "critical"},
+    "root_cause": "deploy_pay",
+    "ground_truth_summary": "payment-svc deployment v3.2.0 introduced a memory leak in session handling causing OOM crashes.",
+    "affected_services": ["payment-svc"],
+    "resolution": "Rollback payment-svc to v3.1.0 and fix session cleanup code"
+  },
+  {
+    "incident_id": "incident_11",
+    "alert": {"alert_name": "DNS resolution failures", "severity": "critical"},
+    "root_cause": "config_dns",
+    "ground_truth_summary": "DNS nameserver addresses were changed to incorrect IPs causing resolution failures across all services.",
+    "affected_services": ["dns", "all-services"],
+    "resolution": "Restore correct nameserver addresses in DNS configuration"
+  },
+  {
+    "incident_id": "incident_12",
+    "alert": {"alert_name": "Rate limiting misconfiguration", "severity": "high"},
+    "root_cause": "config_rl",
+    "ground_truth_summary": "API gateway rate limit changed from 10000 RPM to 10 RPM, throttling all legitimate traffic.",
+    "affected_services": ["api-gateway", "rate-limiter"],
+    "resolution": "Restore RATE_LIMIT_RPM to 10000 in api-gateway config"
+  },
+  {
+    "incident_id": "incident_13",
+    "alert": {"alert_name": "Disk space exhaustion", "severity": "critical"},
+    "root_cause": "config_logrot",
+    "ground_truth_summary": "Log rotation was disabled causing log files to fill disk on all service nodes within 48 hours.",
+    "affected_services": ["logging", "all-services"],
+    "resolution": "Re-enable log rotation and purge old log files immediately"
+  },
+  {
+    "incident_id": "incident_14",
+    "alert": {"alert_name": "Circuit breaker stuck open", "severity": "critical"},
+    "root_cause": "config_cb",
+    "ground_truth_summary": "Circuit breaker threshold changed from 50% to 2% error rate, causing breaker to open on any single error.",
+    "affected_services": ["api-gateway", "backend-services"],
+    "resolution": "Restore CB_THRESHOLD to 50% in api-gateway circuit breaker config"
+  },
+  {
+    "incident_id": "incident_15",
+    "alert": {"alert_name": "Elasticsearch cluster red status", "severity": "critical"},
+    "root_cause": "shard_allocation_failure",
+    "ground_truth_summary": "Elasticsearch shard allocation failed after node removal leaving cluster in red status with unassigned shards.",
+    "affected_services": ["elasticsearch", "search-svc"],
+    "resolution": "Re-add node or reroute unassigned shards using cluster reroute API"
+  },
+  {
+    "incident_id": "incident_16",
+    "alert": {"alert_name": "Auth service high latency", "severity": "high"},
+    "root_cause": "index_missing",
+    "ground_truth_summary": "Database migration dropped index on users.email column causing full table scans on every auth request.",
+    "affected_services": ["auth-svc", "database"],
+    "resolution": "Recreate index on users.email and monitor query performance"
+  },
+  {
+    "incident_id": "incident_17",
+    "alert": {"alert_name": "Payment processing failures", "severity": "critical"},
+    "root_cause": "tls_version_mismatch",
+    "ground_truth_summary": "Payment gateway API deprecated TLS 1.0 and payment-svc was not upgraded to TLS 1.2 causing connection rejections.",
+    "affected_services": ["payment-svc", "payment-gateway"],
+    "resolution": "Upgrade payment-svc TLS config to use TLS 1.2 minimum"
+  },
+  {
+    "incident_id": "incident_18",
+    "alert": {"alert_name": "CDN cache poisoning detected", "severity": "critical"},
+    "root_cause": "cache_key_misconfiguration",
+    "ground_truth_summary": "CDN cache key did not include Authorization header, causing authenticated responses to be served to unauthenticated users.",
+    "affected_services": ["cdn", "api-gateway"],
+    "resolution": "Update CDN cache key rules to vary on Authorization header"
+  },
+  {
+    "incident_id": "incident_19",
+    "alert": {"alert_name": "Microservice mesh timeout storm", "severity": "critical"},
+    "root_cause": "istio_config_error",
+    "ground_truth_summary": "Istio VirtualService misconfiguration set retry attempts to 10 with no timeout causing cascading retry storms.",
+    "affected_services": ["service-mesh", "all-services"],
+    "resolution": "Fix Istio VirtualService to limit retries to 3 with 5s timeout"
+  },
+  {
+    "incident_id": "incident_20",
+    "alert": {"alert_name": "Secrets manager access failure", "severity": "critical"},
+    "root_cause": "iam_policy_change",
+    "ground_truth_summary": "IAM policy update removed GetSecretValue permission from service role, blocking all secret access.",
+    "affected_services": ["secrets-manager", "auth-svc", "payment-svc"],
+    "resolution": "Re-add GetSecretValue permission to the service IAM role"
+  },
+  {
+    "incident_id": "incident_21",
+    "alert": {"alert_name": "GraphQL query timeout", "severity": "high"},
+    "root_cause": "n_plus_one_query",
+    "ground_truth_summary": "New GraphQL resolver introduced N+1 query pattern causing database overload on complex queries.",
+    "affected_services": ["graphql-api", "database"],
+    "resolution": "Add DataLoader batching to the GraphQL resolver to eliminate N+1 pattern"
+  },
+  {
+    "incident_id": "incident_22",
+    "alert": {"alert_name": "Object storage access denied", "severity": "high"},
+    "root_cause": "bucket_policy_change",
+    "ground_truth_summary": "S3 bucket policy was changed to private, blocking all application read/write operations.",
+    "affected_services": ["storage-svc", "media-svc"],
+    "resolution": "Restore S3 bucket policy to allow service principal access"
+  },
+  {
+    "incident_id": "incident_23",
+    "alert": {"alert_name": "WebSocket connection drops", "severity": "high"},
+    "root_cause": "load_balancer_timeout",
+    "ground_truth_summary": "Load balancer idle timeout set to 30s caused WebSocket connections to be dropped during low-activity periods.",
+    "affected_services": ["websocket-svc", "load-balancer"],
+    "resolution": "Increase load balancer idle timeout to 3600s for WebSocket support"
+  },
+  {
+    "incident_id": "incident_24",
+    "alert": {"alert_name": "Feature flag service outage", "severity": "critical"},
+    "root_cause": "redis_eviction",
+    "ground_truth_summary": "Feature flag cache in Redis was fully evicted causing feature flag service to fall back to fail-closed state.",
+    "affected_services": ["feature-flags", "redis"],
+    "resolution": "Increase Redis maxmemory and set noeviction policy for feature flag keyspace"
+  },
+  {
+    "incident_id": "incident_25",
+    "alert": {"alert_name": "Notification service delivery failure", "severity": "high"},
+    "root_cause": "smtp_credentials_rotated",
+    "ground_truth_summary": "SMTP credentials were rotated but notification-svc was not updated, causing email delivery failures.",
+    "affected_services": ["notification-svc", "smtp-gateway"],
+    "resolution": "Update SMTP_PASSWORD secret in notification-svc environment and restart"
+  },
+  {
+    "incident_id": "incident_26",
+    "alert": {"alert_name": "Search service degraded accuracy", "severity": "high"},
+    "root_cause": "index_out_of_sync",
+    "ground_truth_summary": "Elasticsearch index replication lag caused search results to be 2 hours stale after primary node restart.",
+    "affected_services": ["search-svc", "elasticsearch"],
+    "resolution": "Force index sync and monitor replication lag until below 5 seconds"
+  },
+  {
+    "incident_id": "incident_27",
+    "alert": {"alert_name": "Billing calculation errors", "severity": "critical"},
+    "root_cause": "timezone_drift",
+    "ground_truth_summary": "Billing service calculated monthly totals using server local time instead of UTC causing incorrect charges.",
+    "affected_services": ["billing-svc", "database"],
+    "resolution": "Fix billing-svc to use UTC for all date calculations and reprocess affected invoices"
+  },
+  {
+    "incident_id": "incident_28",
+    "alert": {"alert_name": "API version deprecation cascade", "severity": "high"},
+    "root_cause": "api_v1_shutdown",
+    "ground_truth_summary": "Legacy API v1 endpoint was shut down but 3 internal services still depended on it causing failures.",
+    "affected_services": ["legacy-api", "reporting-svc", "analytics-svc"],
+    "resolution": "Restore API v1 endpoint temporarily and migrate dependent services to v2"
+  },
+  {
+    "incident_id": "incident_29",
+    "alert": {"alert_name": "gRPC stream failures", "severity": "high"},
+    "root_cause": "max_message_size",
+    "ground_truth_summary": "gRPC max message size not updated after payload grew, causing streaming RPC calls to fail silently.",
+    "affected_services": ["grpc-svc", "data-pipeline"],
+    "resolution": "Increase grpc.max_receive_message_length to 32MB in service config"
+  },
+  {
+    "incident_id": "incident_30",
+    "alert": {"alert_name": "Autoscaler not triggering", "severity": "high"},
+    "root_cause": "metrics_server_crash",
+    "ground_truth_summary": "Kubernetes metrics-server crashed causing HPA autoscaler to have no CPU data and not scale out under load.",
+    "affected_services": ["autoscaler", "metrics-server"],
+    "resolution": "Restart metrics-server pod and verify HPA resumes normal scaling"
+  },
+  {
+    "incident_id": "incident_31",
+    "alert": {"alert_name": "OAuth token refresh failures", "severity": "critical"},
+    "root_cause": "client_secret_expiry",
+    "ground_truth_summary": "OAuth client secret expired causing all token refresh attempts to fail with 401 Unauthorized.",
+    "affected_services": ["auth-svc", "oauth-provider"],
+    "resolution": "Rotate OAuth client secret and update in auth-svc secrets manager"
+  },
+  {
+    "incident_id": "incident_32",
+    "alert": {"alert_name": "Database deadlock spike", "severity": "critical"},
+    "root_cause": "lock_ordering_bug",
+    "ground_truth_summary": "New ORM version changed lock acquisition order causing deadlocks between concurrent transactions.",
+    "affected_services": ["database", "api-svc"],
+    "resolution": "Rollback ORM version and add deadlock detection with retry logic"
+  },
+  {
+    "incident_id": "incident_33",
+    "alert": {"alert_name": "Container image pull failures", "severity": "critical"},
+    "root_cause": "registry_auth_expiry",
+    "ground_truth_summary": "Container registry access token expired causing all pod restarts to fail with ImagePullBackOff errors.",
+    "affected_services": ["container-registry", "kubernetes"],
+    "resolution": "Refresh registry credentials secret and trigger pod restarts"
+  },
+  {
+    "incident_id": "incident_34",
+    "alert": {"alert_name": "Message queue backlog spike", "severity": "high"},
+    "root_cause": "consumer_thread_exhaustion",
+    "ground_truth_summary": "Consumer thread pool exhausted after upstream service slowdown, causing RabbitMQ queue backlog to grow.",
+    "affected_services": ["rabbitmq", "consumer-svc"],
+    "resolution": "Scale consumer-svc replicas and increase thread pool size"
+  },
+  {
+    "incident_id": "incident_35",
+    "alert": {"alert_name": "Ingress controller 502 errors", "severity": "critical"},
+    "root_cause": "upstream_pod_crash",
+    "ground_truth_summary": "All backend pods for the reporting service crashed due to OOM, causing ingress to return 502 Bad Gateway.",
+    "affected_services": ["ingress", "reporting-svc"],
+    "resolution": "Restart reporting-svc pods and increase memory limits"
+  },
+  {
+    "incident_id": "incident_36",
+    "alert": {"alert_name": "Audit log corruption", "severity": "high"},
+    "root_cause": "concurrent_write_bug",
+    "ground_truth_summary": "Concurrent audit log writers without mutex lock caused log file corruption during high-traffic periods.",
+    "affected_services": ["audit-svc", "logging"],
+    "resolution": "Add write mutex to audit logger and rebuild corrupted log files"
+  },
+  {
+    "incident_id": "incident_37",
+    "alert": {"alert_name": "API key rotation failure", "severity": "critical"},
+    "root_cause": "zero_downtime_rotation_bug",
+    "ground_truth_summary": "API key rotation script deleted old keys before new keys were propagated, causing 401 errors during transition.",
+    "affected_services": ["api-gateway", "auth-svc"],
+    "resolution": "Implement grace period for old keys during rotation and re-issue affected client keys"
+  },
+  {
+    "incident_id": "incident_38",
+    "alert": {"alert_name": "Health check cascade failure", "severity": "critical"},
+    "root_cause": "health_check_timeout_too_low",
+    "ground_truth_summary": "Health check timeout reduced to 100ms caused healthy services to be marked unhealthy and removed from load balancer pool.",
+    "affected_services": ["load-balancer", "all-services"],
+    "resolution": "Restore health check timeout to 2000ms and re-add healthy services to pool"
+  },
+  {
+    "incident_id": "incident_39",
+    "alert": {"alert_name": "Prometheus scrape failures", "severity": "high"},
+    "root_cause": "network_policy_change",
+    "ground_truth_summary": "Kubernetes NetworkPolicy change blocked Prometheus from scraping metrics endpoints on port 9090.",
+    "affected_services": ["prometheus", "monitoring"],
+    "resolution": "Update NetworkPolicy to allow ingress from Prometheus namespace on port 9090"
+  },
+  {
+    "incident_id": "incident_40",
+    "alert": {"alert_name": "Backup job silent failure", "severity": "high"},
+    "root_cause": "storage_quota_exceeded",
+    "ground_truth_summary": "Backup destination storage quota was exceeded causing backup jobs to fail silently without alerting.",
+    "affected_services": ["backup-svc", "storage"],
+    "resolution": "Increase storage quota, purge old backups, and add quota alerts"
+  }
+]

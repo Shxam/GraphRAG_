@@ -14,12 +14,16 @@ class GraphSchema:
     """Manages TigerGraph schema for incident analysis"""
     
     def __init__(self):
-        self.conn = tg.TigerGraphConnection(
-            host=os.getenv("TIGERGRAPH_HOST"),
-            username=os.getenv("TIGERGRAPH_USERNAME"),
-            password=os.getenv("TIGERGRAPH_PASSWORD"),
-            graphname=os.getenv("TIGERGRAPH_GRAPH_NAME", "IncidentGraph")
-        )
+        self.conn = None
+        try:
+            self.conn = tg.TigerGraphConnection(
+                host=os.getenv("TIGERGRAPH_HOST"),
+                username=os.getenv("TIGERGRAPH_USERNAME"),
+                password=os.getenv("TIGERGRAPH_PASSWORD"),
+                graphname=os.getenv("TIGERGRAPH_GRAPH_NAME", "IncidentGraph")
+            )
+        except Exception:
+            pass
     
     def create_schema(self):
         """Create all vertex and edge types"""
@@ -40,8 +44,10 @@ class GraphSchema:
                     "escalation_path STRING", "pagerduty_id STRING"],
             "Runbook": ["runbook_id STRING PRIMARY KEY", "title STRING", "steps_summary STRING",
                        "last_used DATETIME", "url STRING"],
+            # Phase 1: Added mttr_minutes and resolution_summary to Incident vertex
             "Incident": ["incident_id STRING PRIMARY KEY", "severity STRING", "start_time DATETIME",
-                        "end_time DATETIME", "status STRING"]
+                        "end_time DATETIME", "status STRING",
+                        "mttr_minutes FLOAT", "resolution_summary STRING"]
         }
         
         # Edge definitions
@@ -54,7 +60,10 @@ class GraphSchema:
             "owned_by": ("Service", "Team", []),
             "has_runbook": ("Service", "Runbook", ["issue_type STRING"]),
             "calls": ("Service", "Service", ["protocol STRING", "timeout_ms INT"]),
-            "part_of": ("Alert", "Incident", [])
+            "part_of": ("Alert", "Incident", []),
+            # Phase 1: New edges
+            "directly_affects": ("ConfigChange", "Service", ["confidence_score FLOAT"]),
+            "similar_to": ("Incident", "Incident", ["similarity_score FLOAT"]),
         }
         
         print("Schema definition ready. Deploy manually in TigerGraph Studio.")

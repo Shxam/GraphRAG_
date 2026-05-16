@@ -4,7 +4,7 @@ Generates and verifies attestation reports
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any
 from tee.key_manager import KeyManager
 
@@ -28,7 +28,7 @@ class AttestationService:
             MRENCLAVE hash
         """
         self.mrenclave = self.key_manager.compute_mrenclave(code_directory)
-        self.attestation_timestamp = datetime.utcnow().isoformat() + "Z"
+        self.attestation_timestamp = datetime.now(timezone.utc).isoformat()
         return self.mrenclave
     
     def generate_attestation_report(self) -> Dict[str, Any]:

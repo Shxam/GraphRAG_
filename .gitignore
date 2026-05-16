@@ -1,19 +1,100 @@
-.env
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-.venv/
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
 venv/
+.venv/
 ENV/
 env/
-.Python
-*.so
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
 .pytest_cache/
 .coverage
 htmlcov/
-dist/
-build/
-*.egg-info/
-.DS_Store
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Logs
+logs/
 *.log
+*.jsonl
+
+# Data
 data/synthetic_incidents.json
+data/real_incidents.jsonl
+data/benchmark_results.json
+data/ingest.log
+data/runbooks/*.md
+
+# Docker
+.dockerignore
+docker-compose.override.yml.local
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Redis
+dump.rdb
+
+# Cache
+.cache/
+*.cache
+
+# Distribution
+*.tar.gz
+*.zip

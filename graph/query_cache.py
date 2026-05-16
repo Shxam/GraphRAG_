@@ -35,6 +35,8 @@ class QueryCache:
         self.memory_cache: Dict[str, tuple] = {}  # key -> (value, expiry_time)
         self.hits = 0
         self.misses = 0
+        self._write_count = 0
+        self._cleanup_interval = 100  # Run cleanup every N writes
         
         # Try to connect to Redis
         if REDIS_AVAILABLE:
@@ -73,6 +75,9 @@ class QueryCache:
         
         if cached_value is not None:
             self.hits += 1
+            # Mark as cache hit so callers can detect it
+            if isinstance(cached_value, dict):
+                cached_value["_cache_hit"] = True
             return cached_value
         
         # Cache miss - fetch fresh data
@@ -82,6 +87,8 @@ class QueryCache:
         # Store in cache
         self._set(query_key, result, ttl)
         
+        if isinstance(result, dict):
+            result["_cache_hit"] = False
         return result
     
     def _get(self, key: str) -> Optional[Any]:
@@ -122,8 +129,10 @@ class QueryCache:
         expiry_time = time.time() + ttl
         self.memory_cache[key] = (value, expiry_time)
         
-        # Clean up expired entries periodically
-        self._cleanup_memory_cache()
+        # Throttled cleanup: only run every N writes to avoid O(n) on every set
+        self._write_count += 1
+        if self._write_count % self._cleanup_interval == 0:
+            self._cleanup_memory_cache()
     
     def _cleanup_memory_cache(self):
         """Remove expired entries from memory cache"""

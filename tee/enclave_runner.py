@@ -29,15 +29,15 @@ class EnclaveRunner:
         
         # Generate attestation
         self.attestation_service.generate_mrenclave()
-        print(f"✓ MRENCLAVE generated: {self.attestation_service.mrenclave[:16]}...")
+        print(f"[OK] MRENCLAVE generated: {self.attestation_service.mrenclave[:16]}...")
         
         # Derive sealing key
         self.sealing_key = self.key_manager.derive_sealing_key()
-        print(f"✓ Sealing key derived")
+        print(f"[OK] Sealing key derived")
         
         # Mark enclave as active
         self.enclave_active = True
-        print(f"✓ Enclave active (simulation mode)")
+        print(f"[OK] Enclave active (simulation mode)")
         
         return True
     
@@ -106,7 +106,7 @@ class EnclaveRunner:
         print("Shutting down enclave...")
         self.sealing_key = None
         self.enclave_active = False
-        print("✓ Enclave shutdown complete")
+        print("[OK] Enclave shutdown complete")
 
 
 if __name__ == "__main__":

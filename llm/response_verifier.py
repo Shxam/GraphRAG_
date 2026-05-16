@@ -27,8 +27,8 @@ class ResponseVerifier:
         services = re.findall(r'\b[\w]+-svc\b|\b[\w]+_svc\b', response_text, re.IGNORECASE)
         entities.update(services)
         
-        # Extract config keys (pattern: UPPERCASE_WITH_UNDERSCORES)
-        config_keys = re.findall(r'\b[A-Z][A-Z_]+[A-Z]\b', response_text)
+        # Extract config keys (pattern: UPPERCASE_WITH_UNDERSCORES, min 4 chars with at least one underscore)
+        config_keys = re.findall(r'\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b', response_text)
         entities.update(config_keys)
         
         # Extract team names (common patterns)

@@ -1,0 +1,146 @@
+{
+  "llm_config": {
+    "provider": "groq",
+    "model": "llama-3.3-70b-versatile",
+    "api_key_env": "GROQ_API_KEY",
+    "temperature": 0.3,
+    "max_tokens": 1024,
+    "fallback_providers": [
+      {
+        "provider": "together",
+        "model": "meta-llama/Llama-3-70b-chat-hf",
+        "api_key_env": "TOGETHER_API_KEY"
+      },
+      {
+        "provider": "openrouter",
+        "model": "mistralai/mixtral-8x7b-instruct",
+        "api_key_env": "OPENROUTER_API_KEY"
+      }
+    ]
+  },
+  "embedding_config": {
+    "provider": "openai",
+    "model": "text-embedding-3-small",
+    "api_key_env": "OPENAI_API_KEY",
+    "dimensions": 1536,
+    "fallback": {
+      "provider": "local",
+      "model": "sentence-transformers/all-MiniLM-L6-v2",
+      "dimensions": 384
+    }
+  },
+  "chunking_config": {
+    "method": "semantic",
+    "chunk_size": 1024,
+    "overlap": 128,
+    "percentile": 0.92,
+    "min_chunk_size": 256,
+    "max_chunk_size": 2048
+  },
+  "retrieval_config": {
+    "default_top_k": 5,
+    "default_max_hops": 2,
+    "routing_rules": [
+      {
+        "query_pattern": "what caused|root cause|why did",
+        "top_k": 5,
+        "max_hops": 2,
+        "description": "Root cause analysis queries"
+      },
+      {
+        "query_pattern": "which services|affected services|impacted",
+        "top_k": 8,
+        "max_hops": 3,
+        "description": "Service impact queries"
+      },
+      {
+        "query_pattern": "who|team|owner",
+        "top_k": 3,
+        "max_hops": 1,
+        "description": "Team/ownership queries"
+      },
+      {
+        "query_pattern": "how to fix|remediation|solution",
+        "top_k": 5,
+        "max_hops": 2,
+        "description": "Remediation queries"
+      }
+    ]
+  },
+  "entity_extraction_config": {
+    "enabled": true,
+    "entity_types": [
+      "service",
+      "deployment",
+      "config_change",
+      "team",
+      "alert",
+      "dependency",
+      "runbook"
+    ],
+    "prompt_override": "Extract only concrete SRE entities (services, deployments, config changes, teams, alerts, dependencies, runbooks). Do not extract generic terms or abstract concepts."
+  },
+  "response_config": {
+    "max_sentences": 3,
+    "always_include": [
+      "root_cause",
+      "affected_services",
+      "remediation_steps"
+    ],
+    "format": "concise",
+    "prompt_override": "Provide a concise response in 3 sentences or less. Always state: 1) Root cause, 2) Affected services, 3) How to fix."
+  },
+  "tigergraph_config": {
+    "host_env": "TIGERGRAPH_HOST",
+    "username_env": "TIGERGRAPH_USERNAME",
+    "password_env": "TIGERGRAPH_PASSWORD",
+    "graph_name_env": "TIGERGRAPH_GRAPH_NAME",
+    "connection_timeout": 30,
+    "query_timeout": 60
+  },
+  "cache_config": {
+    "enabled": true,
+    "ttl_seconds": 300,
+    "redis_url_env": "REDIS_URL",
+    "fallback_to_memory": true
+  },
+  "logging_config": {
+    "level_env": "LOG_LEVEL",
+    "default_level": "INFO",
+    "structured_logging": true,
+    "log_dir": "logs",
+    "log_file_pattern": "run_{timestamp}.jsonl"
+  },
+  "pipeline_config": {
+    "timeout_ms_env": "PIPELINE_TIMEOUT_MS",
+    "default_timeout_ms": 10000,
+    "retry_config": {
+      "max_retries": 3,
+      "base_delay_seconds": 1,
+      "exponential_backoff": true
+    }
+  },
+  "evaluation_config": {
+    "llm_judge": {
+      "enabled": true,
+      "model": "mistralai/Mistral-7B-Instruct-v0.1",
+      "api_token_env": "HUGGINGFACE_API_TOKEN",
+      "cache_responses": true
+    },
+    "bertscore": {
+      "enabled": true,
+      "model": "distilbert-base-uncased",
+      "target_f1_rescaled": 0.55,
+      "target_f1_raw": 0.88
+    },
+    "test_set_path": "data/eval_questions.json",
+    "results_path": "data/benchmark_results.json",
+    "report_path": "evaluation/eval_report.md"
+  },
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "workers": 1,
+    "reload": false
+  }
+}

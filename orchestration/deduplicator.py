@@ -23,6 +23,8 @@ class AlertDeduplicator:
         self.seen_fingerprints: Dict[str, float] = {}
         self.total_seen = 0
         self.duplicates_blocked = 0
+        self._check_count = 0
+        self._cleanup_interval = 50  # Run cleanup every N checks
     
     def generate_fingerprint(self, alert: Dict[str, Any]) -> str:
         """
@@ -42,8 +44,8 @@ class AlertDeduplicator:
         # Create fingerprint string
         fingerprint_str = f"{service}:{error_type}:{component}"
         
-        # Generate MD5 hash
-        return hashlib.md5(fingerprint_str.encode()).hexdigest()
+        # Generate SHA-256 hash
+        return hashlib.sha256(fingerprint_str.encode()).hexdigest()
     
     def is_duplicate(self, alert: Dict[str, Any]) -> bool:
         """
@@ -60,8 +62,10 @@ class AlertDeduplicator:
         fingerprint = self.generate_fingerprint(alert)
         current_time = time.time()
         
-        # Clean up old fingerprints outside the window
-        self._cleanup_old_fingerprints(current_time)
+        # Throttled cleanup: only run every N calls
+        self._check_count += 1
+        if self._check_count % self._cleanup_interval == 0:
+            self._cleanup_old_fingerprints(current_time)
         
         # Check if we've seen this fingerprint recently
         if fingerprint in self.seen_fingerprints:

@@ -1,0 +1,29 @@
+{
+  "total_incidents": 2500,
+  "incident_types": [
+    "memory_leak",
+    "ssl_cert_expiry",
+    "redis_eviction",
+    "kafka_consumer_lag",
+    "daylight_saving",
+    "jwt_expiry",
+    "dns_ttl",
+    "db_connection_pool",
+    "rate_limit",
+    "timeout_cascade"
+  ],
+  "services": [
+    "auth-svc",
+    "payment-svc",
+    "api-gateway",
+    "checkout-svc",
+    "user-svc",
+    "order-svc",
+    "inventory-svc",
+    "notification-svc",
+    "fraud-svc",
+    "ledger-svc"
+  ],
+  "estimated_tokens": 5443573,
+  "generated_at": "2026-05-16T07:05:57.293850+00:00"
+}

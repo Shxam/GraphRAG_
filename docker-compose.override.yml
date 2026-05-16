@@ -1,0 +1,82 @@
+# Docker Compose Override for TigerGraph GraphRAG Integration
+# This file extends the base docker-compose.yml with GraphRAG services
+
+version: '3.8'
+
+services:
+  # Official TigerGraph GraphRAG Service
+  tigergraph-graphrag:
+    image: tigergraph/graphrag:latest
+    container_name: postmortemiq-graphrag
+    ports:
+      - "8001:8000"  # GraphRAG API on port 8001 (avoid conflict with main API)
+    environment:
+      # TigerGraph connection
+      - TIGERGRAPH_HOST=${TIGERGRAPH_HOST}
+      - TIGERGRAPH_USERNAME=${TIGERGRAPH_USERNAME}
+      - TIGERGRAPH_PASSWORD=${TIGERGRAPH_PASSWORD}
+      - TIGERGRAPH_GRAPH_NAME=${TIGERGRAPH_GRAPH_NAME}
+      
+      # LLM configuration
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - LLM_PROVIDER=groq
+      - LLM_MODEL=llama-3.3-70b-versatile
+      
+      # Embedding configuration
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - EMBEDDING_PROVIDER=openai
+      - EMBEDDING_MODEL=text-embedding-3-small
+      
+      # Optional fallbacks
+      - TOGETHER_API_KEY=${TOGETHER_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - USE_LOCAL_EMBEDDINGS=${USE_LOCAL_EMBEDDINGS:-false}
+    volumes:
+      - ./configs:/app/configs:ro
+      - ./data:/app/data
+      - graphrag-cache:/app/cache
+    networks:
+      - postmortemiq-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # PostMortemIQ API (updated to connect to GraphRAG)
+  postmortemiq-api:
+    environment:
+      - GRAPHRAG_BASE_URL=http://tigergraph-graphrag:8000
+    depends_on:
+      tigergraph-graphrag:
+        condition: service_healthy
+
+  # Redis for caching (optional but recommended)
+  redis:
+    image: redis:7-alpine
+    container_name: postmortemiq-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - postmortemiq-network
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  graphrag-cache:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  postmortemiq-network:
+    driver: bridge

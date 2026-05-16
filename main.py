@@ -15,10 +15,10 @@ if __name__ == "__main__":
     import uvicorn
     
     print("""
-    ╔═══════════════════════════════════════════════════════════╗
-    ║                    PostMortemIQ                           ║
-    ║     GraphRAG Incident Root-Cause Engine with TEE          ║
-    ╚═══════════════════════════════════════════════════════════╝
+    ===========================================================
+                         PostMortemIQ
+          GraphRAG Incident Root-Cause Engine with TEE
+    ===========================================================
     
     Starting API server on http://localhost:8000
     

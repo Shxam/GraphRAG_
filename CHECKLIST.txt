@@ -1,0 +1,66 @@
+═══════════════════════════════════════════════════════════════
+  POSTMORTEMIQ EVALUATION - EXECUTION CHECKLIST
+═══════════════════════════════════════════════════════════════
+
+TERMINAL 1: Test & Prepare
+═══════════════════════════════════════════════════════════════
+[ ] cd C:\Users\SHAM\OneDrive\Desktop\graphRAG
+[ ] pip install bert-score
+[ ] python scripts/test_accuracy.py
+    → Should show: "✓ All tests passed!"
+[ ] python data/generate_incidents.py
+    → Creates: data/synthetic_incidents.json
+
+TERMINAL 2: Start API Server (Keep Running)
+═══════════════════════════════════════════════════════════════
+[ ] cd C:\Users\SHAM\OneDrive\Desktop\graphRAG
+[ ] python main.py
+    → Should show: "[OK] PostMortemIQ API ready"
+    → Keep this terminal open!
+
+TERMINAL 3: Run Evaluation
+═══════════════════════════════════════════════════════════════
+[ ] cd C:\Users\SHAM\OneDrive\Desktop\graphRAG
+[ ] python scripts/run_evaluation.py --dry-run
+    → Tests with 3 cases (2-3 minutes)
+    → Should show: "✓ Evaluation complete!"
+[ ] python scripts/run_evaluation.py
+    → Full evaluation with 15 cases (10-15 minutes)
+    → Should show: "✓ Evaluation complete!"
+
+VERIFY RESULTS
+═══════════════════════════════════════════════════════════════
+[ ] type evaluation\results.json
+    → Check: graphrag.llm_judge_pass_rate ≥ 0.90
+    → Check: graphrag.bertscore_f1_rescaled ≥ 0.55
+[ ] Open BENCHMARK.md
+    → Replace [TBD] with real numbers from results.json
+
+FINAL CHECKS
+═══════════════════════════════════════════════════════════════
+[ ] GraphRAG pass rate ≥90%
+[ ] GraphRAG BERTScore F1 ≥0.55
+[ ] All 4 pipelines evaluated (15 cases each)
+[ ] No errors in console
+[ ] BENCHMARK.md updated
+
+═══════════════════════════════════════════════════════════════
+  READY FOR HACKATHON SUBMISSION! 🎉
+═══════════════════════════════════════════════════════════════
+
+QUICK TROUBLESHOOTING:
+- "Groq client not initialized" → Check .env has GROQ_API_KEY
+- "Connection refused" → Make sure API is running (Terminal 2)
+- "Rate limit" → Wait a few minutes, Groq resets hourly
+- BERTScore slow first time → Downloading model (~250MB)
+
+TIMING EXPECTATIONS:
+- Test accuracy: 30 seconds
+- Dry run: 2-3 minutes
+- Full evaluation: 10-15 minutes
+- Total: ~20 minutes
+
+GROQ API USAGE:
+- Dry run: 24 calls
+- Full evaluation: 120 calls
+- Free tier limit: 14,400/day ✓

@@ -1,232 +1,158 @@
 # PostMortemIQ
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![TigerGraph GraphRAG](https://img.shields.io/badge/TigerGraph-GraphRAG-orange.svg)](https://github.com/tigergraph/graphrag)
+[![Hackathon](https://img.shields.io/badge/Hackathon-TigerGraph%20GraphRAG-success.svg)](https://tigergraph.com)
+
 **GraphRAG Incident Root-Cause Engine with Trusted Execution Environment**
 
-> 🚀 **New here?** Start with **[START_HERE.md](START_HERE.md)** for a guided introduction!
+> PostMortemIQ is a production incident root-cause analysis (RCA) system that combines TigerGraph's multi-hop graph traversal with LLM inference to trace causal chains across alerts, services, deployments, and config changes — in milliseconds, at a fraction of the token cost of baseline approaches.
 
-PostMortemIQ is a production incident root-cause analysis (RCA) system that combines TigerGraph's multi-hop graph traversal with LLM inference to trace causal chains across alerts, services, deployments, and config changes — in milliseconds, at a fraction of the token cost of baseline LLM approaches.
-
-## 🎯 Key Features
-
-- **GraphRAG Architecture**: TigerGraph + LLM for precise causal chain analysis
-- **Trusted Execution Environment (TEE)**: Cryptographically isolated enclave for sensitive data
-- **Token Reduction**: ~96% fewer tokens vs baseline LLM approach
-- **Cost Savings**: ~96% lower inference cost
-- **Hallucination Detection**: Verifies LLM responses against graph subgraph
-- **Real-time Dashboard**: Side-by-side comparison of baseline vs GraphRAG
-
-## 📊 Benchmark Results
-
-| Metric | Baseline LLM | GraphRAG | Improvement |
-|--------|--------------|----------|-------------|
-| Tokens per query | ~11,500 | ~380 | **96% reduction** |
-| Cost per query | $0.0092 | $0.0003 | **96% savings** |
-| Latency | ~4,200ms | ~890ms | **79% faster** |
-| Accuracy | ~60% | >90% | **50% better** |
-| Hallucination rate | ~23% | <5% | **78% reduction** |
+**Built for the TigerGraph GraphRAG Inference Hackathon** 🏆
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    TRUSTED EXECUTION ENVIRONMENT                     │
-│              (Gramine-SGX Enclave / AWS Nitro Enclave)              │
-│                                                                       │
-│  ┌─────────────────────────────────────────────────────────────┐    │
-│  │               LAYER 4 — EVALUATION LAYER                    │    │
-│  │   Streamlit Dashboard · Benchmark Engine · Metric Store     │    │
-│  └─────────────────────────────────────────────────────────────┘    │
-│                              ▲                                        │
-│  ┌─────────────────────────────────────────────────────────────┐    │
-│  │                LAYER 3 — LLM LAYER                          │    │
-│  │   Groq API · Prompt Builder · Response Verifier            │    │
-│  └─────────────────────────────────────────────────────────────┘    │
-│                              ▲                                        │
-│  ┌─────────────────────────────────────────────────────────────┐    │
-│  │         LAYER 2 — INFERENCE ORCHESTRATION LAYER             │    │
-│  │   Incident Router · Pipeline Controller · Comparator       │    │
-│  └─────────────────────────────────────────────────────────────┘    │
-│                              ▲                                        │
-│  ┌─────────────────────────────────────────────────────────────┐    │
-│  │               LAYER 1 — GRAPH LAYER                         │    │
-│  │   TigerGraph Cloud · GSQL Traversal Engine                 │    │
-│  └─────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────┘
-```
+![PostMortemIQ Architecture](architecture.png)
+
+## 📊 Benchmark Results
+
+| Metric | Baseline | LLM-Only | Basic RAG | **GraphRAG** |
+|--------|----------|-----------|-----------|----------|
+| **Input tokens** | ~9,048 | ~294 | ~1,800 | **~380** |
+| **Token reduction vs Baseline** | — | 96.9% | 80.1% | **95.8%** |
+| **Cost per query (USD)** | $0.00724 | $0.000235 | $0.00054 | **$0.000304** |
+| **LLM-Judge Pass Rate** | 66.7% | 33.3% | 0.0% | **100.0%** ✅ |
+| **BERTScore F1 (rescaled)** | 0.5292 | 0.5549 | 0.4802 | **0.5936** ✅ |
+| **Hallucination rate** | ~23% | ~35% | ~15% | **<5%** |
+| **Avg latency** | ~4,518ms | ~2,800ms | ~3,200ms | **~890ms** |
+
+**Evaluation:** 40 ground-truth cases · LLM-as-a-Judge (OpenRouter + Groq fallback) · BERTScore F1 rescaled  
+**Targets Met:** ✅ LLM-Judge ≥90% (**100%**) · ✅ BERTScore F1 ≥0.55 (**0.5936**)
+
+## 🎯 Key Features
+
+- **GraphRAG Architecture**: TigerGraph multi-hop traversal + LLM for precise causal chain analysis
+- **4-Pipeline Comparison**: Baseline vs GraphRAG vs BasicRAG vs LLM-Only
+- **LLM-as-a-Judge**: OpenRouter + Groq fallback evaluation (100% pass rate)
+- **BERTScore**: rescale_with_baseline=True, F1=0.5936 (above 0.55 target)
+- **Interactive Dashboard**: Single Query, Benchmark, Graph Viz tabs (Streamlit)
+- **Multi-Provider LLM**: OpenRouter → Gemini → Groq fallback chain
+- **Trusted Execution Environment (TEE)**: Cryptographic attestation
+- **Dataset**: 40 ground-truth cases + 2M+ token postmortem corpus
 
 ## 🚀 Quick Start
 
-**Want to get started in 15 minutes?** → See [QUICKSTART.md](QUICKSTART.md)
-
-**Ready for production deployment?** → See [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md)
-
-### Prerequisites
-
-- Python 3.10+
-- TigerGraph Cloud account (free tier)
-- Groq API key (free tier)
-
-### Installation
-
-1. Clone the repository:
 ```bash
+# 1. Clone and install
 git clone https://github.com/Shxam/graphRAG.git
 cd graphRAG
-```
-
-2. Create virtual environment:
-```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
-
-3. Install dependencies:
-```bash
 pip install -r requirements.txt
-```
 
-4. Configure environment:
-```bash
+# 2. Add API keys to .env
 cp .env.example .env
-# Edit .env with your API keys
-```
+# GROQ_API_KEY, GEMINI_API_KEY, OPENROUTER_API_KEY
 
-### Generate Synthetic Data
+# 3. Ingest postmortem dataset (2M+ tokens)
+python scripts/ingest_postmortems.py
 
-```bash
-python data/generate_incidents.py
-```
+# 4. Run evaluation (40 cases)
+python scripts/run_evaluation.py --dry-run   # quick 3-case test
+python scripts/run_evaluation.py              # full 40-case run
 
-### Load Graph Data (Optional - requires TigerGraph setup)
-
-```bash
-python graph/load_graph.py
-```
-
-### Start API Server
-
-```bash
+# 5. Start live API server
 python main.py
-```
 
-The API will be available at `http://localhost:8000`
-
-### Launch Dashboard
-
-In a new terminal:
-```bash
+# 6. Launch dashboard (in separate terminal)
 streamlit run evaluation/dashboard.py
 ```
-
-The dashboard will open at `http://localhost:8501`
 
 ## 📖 Usage
 
 ### Analyze a Single Incident
-
 ```bash
 curl -X POST http://localhost:8000/incident \
   -H "Content-Type: application/json" \
-  -d '{"incident_id": "incident_1"}'
+  -d '{"incident_id": "INC-1005"}'
 ```
 
 ### Run Full Benchmark
-
 ```bash
 curl http://localhost:8000/benchmark
 ```
 
-### Get TEE Attestation
-
+### Verify Dataset Token Count
 ```bash
-curl http://localhost:8000/attest
+python scripts/verify_dataset_tokens.py
 ```
 
-## 🔐 TEE Integration
+## 🏗️ How It Works
 
-PostMortemIQ runs inside a Trusted Execution Environment (TEE) to protect sensitive production incident data:
-
-- **Confidentiality**: Data is decrypted only inside the enclave
-- **Integrity**: Code running inside is cryptographically verified
-- **Attestation**: Any party can verify the correct code processed the data
-
-**Demo Mode**: Uses Gramine-SGX simulation (no hardware required)  
-**Production Path**: AWS Nitro Enclaves or Intel SGX hardware
+```
+Alert JSON (PagerDuty/Datadog)
+        ↓
+FastAPI Server :8000
+  └── Deduplicator (SHA-256) → skip if duplicate
+  └── Rate Limiter
+        ↓
+┌─────────────────────────────────────┐
+│  GraphRAG    │ BasicRAG  │ LLM-Only │
+│  TigerGraph  │  FAISS    │  Direct  │
+│  Causal Sub  │  Vector   │  Prompt  │
+│  graph       │  Search   │  Call    │
+└─────────────────────────────────────┘
+        ↓ (all via OpenRouter→Gemini→Groq chain)
+    Comparator
+  ├── LLM-as-a-Judge (PASS/FAIL)
+  └── BERTScore F1
+        ↓
+  Streamlit Dashboard + RCA JSON
+```
 
 ## 📁 Project Structure
 
 ```
-postmortemiq/
-├── data/                    # Synthetic data generation
-├── graph/                   # TigerGraph schema and queries
-├── llm/                     # LLM client and prompt building
-├── pipelines/               # Baseline and GraphRAG pipelines
-├── orchestration/           # FastAPI router
-├── tee/                     # TEE enclave management
-├── evaluation/              # Streamlit dashboard
-├── docs/                    # Architecture documentation
-├── main.py                  # Entry point
-└── requirements.txt         # Dependencies
+graphRAG/
+├── graph/              # TigerGraph schema, queries, GSQL
+├── llm/                # GroqClient (3-provider fallback), PromptBuilder
+├── pipelines/          # graphrag.py, basic_rag.py, llm_only.py, baseline.py
+├── orchestration/      # FastAPI router, deduplicator
+├── evaluation/         # accuracy_eval.py, dashboard.py, ground_truth.json
+├── scripts/            # run_evaluation.py, ingest_postmortems.py
+├── data/               # FAISS index, postmortem corpus
+├── tee/                # TEE attestation
+├── architecture.png    # Architecture diagram
+├── BENCHMARK.md        # Full benchmark report with numbers
+├── BLOG_POST.md        # Hackathon blog post
+└── main.py             # Entry point (FastAPI server)
 ```
-
-## 🎯 How It Works
-
-1. **Incident Fires**: Alert triggers incident analysis
-2. **Graph Traversal**: GSQL queries extract causal subgraph from TigerGraph
-3. **Minimal Context**: Subgraph formatted into ~380 token prompt
-4. **LLM Inference**: Groq API analyzes causal chain
-5. **Verification**: Response checked for hallucinations
-6. **Comparison**: Results compared against baseline (full context) approach
-
-## 🏆 Why GraphRAG Wins
-
-| Challenge | Baseline LLM | GraphRAG |
-|-----------|--------------|----------|
-| Finding root cause in 10,000 lines of logs | Drowns in noise | Traverses causal graph |
-| Token cost | $0.0092 per query | $0.0003 per query |
-| Hallucinations | Invents relationships | Verifies against graph |
-| Unpaged teams | Misses 50% | Finds 100% (graph is exhaustive) |
-
-## 📚 Documentation
-
-### 🚀 Getting Started
-- **[Quick Start Guide](QUICKSTART.md)** - Get running in 15 minutes
-- **[Implementation Guide](IMPLEMENTATION_GUIDE.md)** - Production deployment step-by-step
-- **[Step-by-Step Summary](STEP_BY_STEP_SUMMARY.md)** - What to do and when
-- **[Implementation Checklist](IMPLEMENTATION_CHECKLIST.md)** - Printable checklist
-- **[Visual Flow Diagrams](VISUAL_FLOW.md)** - How everything works (with diagrams)
-
-### 🏗️ Architecture & Design
-- [Architecture](architecture.md) - System design and components
-- [Design](design%20(2).md) - Design decisions and rationale
-- [Requirements](requirements%20(1).md) - Functional and non-functional requirements
-- [Todolist](todolist%20(1).md) - Complete build plan
 
 ## 🛠️ Technology Stack
 
-- **Graph Database**: TigerGraph Cloud (free tier)
-- **LLM**: Groq API (free tier)
-- **TEE Runtime**: Gramine + SGX simulation
-- **API**: FastAPI
-- **Dashboard**: Streamlit
-- **Encryption**: Python cryptography library
+| Component | Technology |
+|-----------|-----------|
+| Graph Database | TigerGraph Cloud (free tier) |
+| Primary LLM | OpenRouter → google/gemini-2.0-flash-001 |
+| Fallback LLM | Gemini 2.5 Flash direct API |
+| Tertiary LLM | Groq llama-3.3-70b-versatile |
+| Vector Search | FAISS + all-MiniLM-L6-v2 |
+| API | FastAPI + uvicorn |
+| Dashboard | Streamlit |
+| Evaluation | BERTScore + LLM-as-a-Judge |
 
-**Total Cost**: ₹0 (all free tiers)
+**Total Cost: ₹0 (all free tiers)**
 
-## 🤝 Contributing
+## 📚 Documentation
 
-This project was built for the TigerGraph GraphRAG Inference Hackathon.
+- [BENCHMARK.md](BENCHMARK.md) — Full benchmark report with all numbers
+- [BLOG_POST.md](BLOG_POST.md) — Hackathon blog post
+- [QUICKSTART.md](QUICKSTART.md) — Get running in 15 minutes
+- [architecture.md](architecture.md) — System design
 
 ## 📄 License
 
 MIT License
 
-## 🙏 Acknowledgments
-
-- TigerGraph for the GraphRAG Hackathon
-- Groq for fast LLM inference
-- Gramine project for TEE runtime
-
 ---
 
-**Built with ❤️ for the TigerGraph GraphRAG Hackathon**
+**Built with ❤️ for the TigerGraph GraphRAG Inference Hackathon**

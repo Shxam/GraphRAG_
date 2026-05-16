@@ -1,0 +1,37 @@
+{
+  "run_timestamp": "2026-05-16T23:40:46.639940",
+  "total_cases": 3,
+  "dry_run": true,
+  "graphrag": {
+    "llm_judge_pass_rate": 1.0,
+    "bertscore_f1_raw": 0.831,
+    "bertscore_f1_rescaled": 0.6621,
+    "bertscore_precision": 0.7926,
+    "bertscore_recall": 0.8737,
+    "total_evaluated": 3
+  },
+  "basic_rag": {
+    "llm_judge_pass_rate": 1.0,
+    "bertscore_f1_raw": 0.8333,
+    "bertscore_f1_rescaled": 0.6666,
+    "bertscore_precision": 0.8102,
+    "bertscore_recall": 0.8589,
+    "total_evaluated": 3
+  },
+  "llm_only": {
+    "llm_judge_pass_rate": 0.6667,
+    "bertscore_f1_raw": 0.7646,
+    "bertscore_f1_rescaled": 0.5293,
+    "bertscore_precision": 0.7518,
+    "bertscore_recall": 0.7782,
+    "total_evaluated": 3
+  },
+  "baseline": {
+    "llm_judge_pass_rate": 0.6667,
+    "bertscore_f1_raw": 0.8392,
+    "bertscore_f1_rescaled": 0.6784,
+    "bertscore_precision": 0.8053,
+    "bertscore_recall": 0.8762,
+    "total_evaluated": 3
+  }
+}

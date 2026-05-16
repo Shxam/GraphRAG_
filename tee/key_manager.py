@@ -7,15 +7,14 @@ import hashlib
 import os
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
-from typing import bytes as Bytes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 
 class KeyManager:
     """Manages encryption keys for TEE"""
     
     @staticmethod
-    def derive_sealing_key(seed: str = "postmortemiq_enclave_seed") -> Bytes:
+    def derive_sealing_key(seed: str = "postmortemiq_enclave_seed") -> bytes:
         """
         Derive a sealing key from a deterministic seed
         In production SGX, this would be derived from MRENCLAVE
@@ -26,8 +25,8 @@ class KeyManager:
         Returns:
             32-byte encryption key
         """
-        # Use PBKDF2 to derive a key from the seed
-        kdf = PBKDF2(
+        # Use PBKDF2HMAC to derive a key from the seed
+        kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=b"postmortemiq_salt",
@@ -37,7 +36,7 @@ class KeyManager:
         return key
     
     @staticmethod
-    def encrypt_data(data: Bytes, key: Bytes) -> Bytes:
+    def encrypt_data(data: bytes, key: bytes) -> bytes:
         """
         Encrypt data using AES-256-GCM
         
@@ -54,7 +53,7 @@ class KeyManager:
         return nonce + ciphertext
     
     @staticmethod
-    def decrypt_data(encrypted_data: Bytes, key: Bytes) -> Bytes:
+    def decrypt_data(encrypted_data: bytes, key: bytes) -> bytes:
         """
         Decrypt data using AES-256-GCM
         
