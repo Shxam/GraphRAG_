@@ -36,7 +36,6 @@ class PromptBuilder:
             r"you\s+are\s+now",
             r"</system>",
             r"\[INST\]",
-            r"###",
             r"SYSTEM:",
             r"Assistant:",
             r"<\|im_start\|>",
@@ -54,7 +53,6 @@ class PromptBuilder:
         # Hard cap at 2000 characters
         if len(text) > 2000:
             text = text[:2000]
-            found_patterns.append("length_exceeded")
         
         # Log warning if any patterns were found
         if found_patterns:
@@ -143,7 +141,7 @@ Based on this verified causal chain, provide a concise, 1-2 sentence paragraph s
 - The exact root cause (which Deployment or ConfigChange caused the incident)
 - The affected services
 - The resolution
-Do NOT use lists or bullet points. Output ONLY the concise summary."""
+Do NOT use lists or bullet points. Output ONLY the concise summary. You MUST use the exact names and values from the nodes provided above."""
         
         return f"{system_prompt}\n\n{user_prompt}"
     
@@ -238,7 +236,12 @@ Do NOT use lists or bullet points. Output ONLY the concise summary."""
             edge_type = PromptBuilder.sanitize_alert_text(edge.get('type', ''), alert_id)
             from_name = id_to_name.get(from_id, from_id)
             to_name = id_to_name.get(to_id, to_id)
-            lines.append(f"  - {from_name} --[{edge_type}]--> {to_name}")
+            reason = edge.get('reason') or edge.get('description') or edge.get('details')
+            if reason:
+                reason_clean = PromptBuilder.sanitize_alert_text(reason, alert_id)
+                lines.append(f"  - {from_name} -> {to_name} (reason: {reason_clean})")
+            else:
+                lines.append(f"  - {from_name} -> {to_name} (type: {edge_type})")
         
         lines.append("")
         
@@ -303,7 +306,7 @@ Do NOT use lists or bullet points. Output ONLY the concise summary."""
     @staticmethod
     def count_tokens_estimate(text: str) -> int:
         """
-        Rough token count estimate (4 chars ≈ 1 token)
+        Rough token count estimate (4 chars ~ 1 token)
         For accurate counting, use tiktoken in production
         """
         return len(text) // 4

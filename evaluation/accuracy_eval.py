@@ -47,6 +47,28 @@ def _call_openrouter_judge(prompt: str) -> str:
     return resp.json()["choices"][0]["message"]["content"].strip().upper()
 
 
+def _call_ollama_judge(prompt: str) -> str:
+    """Call Ollama direct for judge evaluation"""
+    import httpx, os
+    host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+    key = os.getenv("OLLAMA_API_KEY")
+    headers = {"Content-Type": "application/json"}
+    if key:
+        headers["Authorization"] = f"Bearer {key}"
+        
+    url = f"{host.rstrip('/')}/api/generate"
+    payload = {
+        "model": "llama3",
+        "prompt": prompt,
+        "stream": False,
+        "options": {"temperature": 0, "num_predict": 10}
+    }
+    response = httpx.post(url, headers=headers, json=payload, timeout=30.0)
+    response.raise_for_status()
+    data = response.json()
+    return data.get("response", "").strip().upper()
+
+
 def _call_gemini_judge(prompt: str) -> str:
     """Call Gemini direct for judge evaluation"""
     import httpx, os
@@ -103,21 +125,29 @@ Respond with exactly one word: PASS or FAIL"""
     except Exception as e:
         logger.warning(f"Groq judge failed: {e}")
 
-    # ── 2. OpenRouter (fallback judge) ─────────────────────────────────────
+    # ── 2. Ollama (fallback judge) ─────────────────────────────────────
     if raw_response is None:
         try:
-            raw_response = _call_openrouter_judge(prompt)
-            logger.info(f"OpenRouter judge: {raw_response}")
+            raw_response = _call_ollama_judge(prompt)
+            logger.info(f"Ollama judge: {raw_response}")
         except Exception as e:
-            logger.warning(f"OpenRouter judge failed: {e}")
+            logger.warning(f"Ollama judge failed: {e}")
 
-    # ── 3. Gemini direct (last LLM resort) ─────────────────────────────────
+    # ── 3. Gemini direct (fallback judge) ─────────────────────────────────
     if raw_response is None:
         try:
             raw_response = _call_gemini_judge(prompt)
             logger.info(f"Gemini judge: {raw_response}")
         except Exception as e:
             logger.warning(f"Gemini judge failed: {e}")
+
+    # ── 4. OpenRouter (last resort judge) ─────────────────────────────────────
+    if raw_response is None:
+        try:
+            raw_response = _call_openrouter_judge(prompt)
+            logger.info(f"OpenRouter judge: {raw_response}")
+        except Exception as e:
+            logger.warning(f"OpenRouter judge failed: {e}")
 
     # Parse verdict if we got a response
     if raw_response is not None:

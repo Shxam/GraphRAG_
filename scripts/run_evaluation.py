@@ -143,6 +143,7 @@ def run_evaluation(dry_run: bool = False) -> Dict[str, Any]:
 
         # Evaluate each pipeline
         for pipeline_name, pipeline_result in pipeline_runs.items():
+            time.sleep(2)  # Delay to prevent judge rate limiting
             rca_report = pipeline_result.get("rca_report", "")
 
             if not rca_report or rca_report.startswith("Error:"):

@@ -47,6 +47,9 @@ class GroqClient:
         self.together_api_key = os.getenv("TOGETHER_API_KEY")
         self.openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
+        self.ollama_api_key = os.getenv("OLLAMA_API_KEY")
+        self.ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+        
         
         if GROQ_AVAILABLE and self.api_key:
             self.client = Groq(api_key=self.api_key)
@@ -75,6 +78,41 @@ class GroqClient:
             "output_tokens": output_tokens, "total_tokens": input_tokens + output_tokens,
             "latency_ms": latency_ms, "model": "gemini-2.5-flash", "provider": "gemini"
         }
+
+    def _call_ollama(self, prompt: str, model: str = "llama3") -> Dict[str, Any]:
+        """Call Ollama API (local or hosted)"""
+        import httpx
+        start_time = time.time()
+        headers = {"Content-Type": "application/json"}
+        if self.ollama_api_key:
+            headers["Authorization"] = f"Bearer {self.ollama_api_key}"
+            
+        url = f"{self.ollama_host.rstrip('/')}/api/generate"
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.3}
+        }
+        
+        response = httpx.post(url, headers=headers, json=payload, timeout=60.0)
+        response.raise_for_status()
+        data = response.json()
+        
+        latency_ms = int((time.time() - start_time) * 1000)
+        input_tokens = data.get("prompt_eval_count", len(prompt) // 4)
+        output_tokens = data.get("eval_count", len(data.get("response", "")) // 4)
+        
+        return {
+            "response": data.get("response", ""),
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "total_tokens": input_tokens + output_tokens,
+            "latency_ms": latency_ms,
+            "model": model,
+            "provider": "ollama"
+        }
+
 
     def call_llm(self, prompt: str, model: str = "llama-3.3-70b-versatile", max_retries: int = 3) -> Dict[str, Any]:
         """
@@ -189,35 +227,47 @@ class GroqClient:
         """
         providers_tried = []
         
-        # Try Groq first (reuses retry logic from call_llm)
+        # 1. Try Groq
         try:
-            result = self.call_llm(prompt)
-            if result.get("provider") != "mock":  # call_llm succeeded with real provider
-                return result
-            # If we got a mock response, Groq failed — try fallbacks
-            providers_tried.append(("Groq", "Groq unavailable or all retries exhausted"))
+            logger.info("Attempting Groq as primary provider...")
+            result = self._call_groq(prompt)
+            return result
         except Exception as e:
-            providers_tried.append(("Groq", str(e)))
-        
-        # Try Together AI
-        if self.together_api_key:
+            error_msg = str(e)
+            providers_tried.append(("Groq", error_msg))
+            logger.warning(f"Groq failed: {error_msg}")
+            
+        # 2. Try Ollama
+        try:
+            logger.info("Attempting Ollama as fallback...")
+            result = self._call_ollama(prompt)
+            return result
+        except Exception as e:
+            error_msg = str(e)
+            providers_tried.append(("Ollama", error_msg))
+            logger.warning(f"Ollama failed: {error_msg}")
+            
+        # 3. Try Gemini
+        if self.gemini_api_key:
             try:
-                result = self._call_together(prompt)
+                logger.info("Attempting Gemini as fallback...")
+                result = self._call_gemini(prompt)
                 return result
             except Exception as e:
                 error_msg = str(e)
-                providers_tried.append(("Together AI", error_msg))
-                print(f"Together AI failed: {error_msg}")
-        
-        # Try OpenRouter
+                providers_tried.append(("Gemini", error_msg))
+                logger.warning(f"Gemini failed: {error_msg}")
+                
+        # 4. Try OpenRouter
         if self.openrouter_api_key:
             try:
+                logger.info("Attempting OpenRouter as fallback...")
                 result = self._call_openrouter(prompt)
                 return result
             except Exception as e:
                 error_msg = str(e)
                 providers_tried.append(("OpenRouter", error_msg))
-                print(f"OpenRouter failed: {error_msg}")
+                logger.warning(f"OpenRouter failed: {error_msg}")
         
         # All providers failed
         summary = "\n".join([f"- {provider}: {error}" for provider, error in providers_tried])

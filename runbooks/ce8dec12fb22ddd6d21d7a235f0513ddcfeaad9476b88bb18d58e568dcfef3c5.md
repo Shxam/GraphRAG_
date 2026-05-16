@@ -32,3 +32,63 @@
 - Potentially downstream services relying on api-gateway
 
 **Escalation:** If not resolved in 15 minutes, page the SRE team.
+
+
+---
+
+## Recurrence
+
+**Date:** 2026-05-17T00:09:45.093830
+
+**Alert:** Circuit breaker stuck open
+
+**Service:** unknown
+
+**Severity:** critical
+
+**Note:** This incident pattern has occurred before. Review prevention measures from original runbook.
+
+
+---
+
+## Recurrence
+
+**Date:** 2026-05-17T00:38:57.877800
+
+**Alert:** Circuit breaker stuck open
+
+**Service:** unknown
+
+**Severity:** critical
+
+**Note:** This incident pattern has occurred before. Review prevention measures from original runbook.
+
+
+---
+
+## Recurrence
+
+**Date:** 2026-05-17T01:09:07.224494
+
+**Alert:** Circuit breaker stuck open
+
+**Service:** unknown
+
+**Severity:** critical
+
+**Note:** This incident pattern has occurred before. Review prevention measures from original runbook.
+
+
+---
+
+## Recurrence
+
+**Date:** 2026-05-17T01:16:33.077388
+
+**Alert:** Circuit breaker stuck open
+
+**Service:** unknown
+
+**Severity:** critical
+
+**Note:** This incident pattern has occurred before. Review prevention measures from original runbook.

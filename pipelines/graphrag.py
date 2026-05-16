@@ -105,6 +105,19 @@ class GraphRAGPipeline:
         cache_hit = subgraph.pop("_cache_hit", False) if isinstance(subgraph, dict) else False
         if cache_hit:
             graph_latency_ms = 0
+            
+        # Fallback to Basic RAG if subgraph is empty
+        if not subgraph.get("nodes"):
+            print(f"  [!] GraphRAG empty subgraph for {incident_id}, falling back to Basic RAG")
+            try:
+                from pipelines.basic_rag import BasicRAGPipeline
+                rag_pipeline = BasicRAGPipeline()
+                result = rag_pipeline.run(incident_id, incident_data)
+                result["pipeline"] = "graphrag"  # Keep name for stats
+                result["fallback_used"] = True
+                return result
+            except Exception as e:
+                print(f"  [!] GraphRAG fallback failed: {e}")
         
         # Find similar past incidents
         
