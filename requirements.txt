@@ -1,15 +1,51 @@
-# Minimal requirements for Streamlit Cloud Dashboard
-# Use this for deployment: streamlit run evaluation/dashboard.py
+# PostMortemIQ Dependencies
+# Pinned for Streamlit Cloud (Python 3.14) compatibility
 
-# Dashboard
-streamlit==1.35.0
+# Core Framework
+fastapi==0.111.0
+uvicorn==0.29.0
+pydantic==2.7.1
+python-dotenv==1.0.1
+
+# Graph Database
+pyTigerGraph==1.6.0
+
+# LLM & AI
+groq==0.9.0
+tiktoken>=0.8.0
+
+# Evaluation
+bert-score==0.3.13
+sentence-transformers>=3.0.1
+transformers>=4.41.2
+faiss-cpu>=1.12.0
+numpy>=1.26.4,<2.0.0
+
+# Dashboard & Visualization
+# IMPORTANT: streamlit>=1.40.0 requires pillow>=11 which has cp314 wheels
+# streamlit==1.35.0 requires pillow==10.4.0 which has NO cp314 wheels -> build fails
+streamlit>=1.40.0
+pillow>=11.0.0
 streamlit-agraph==0.0.45
+pyvis==0.3.2
 
-# HTTP requests
+# HTTP & Networking
+httpx==0.27.0
 requests==2.32.3
-
-# Data handling
 pandas>=2.0.0
 
-# Optional: For local development with full API
-# python-dotenv==1.0.1
+# Data
+faker==25.3.0
+
+# Security
+cryptography==42.0.7
+
+# Async
+aiofiles==23.2.1
+grpcio>=1.64.1
+
+# Caching
+redis==5.0.4
+
+# Utilities
+python-dateutil==2.9.0.post0
