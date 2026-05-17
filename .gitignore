@@ -88,6 +88,9 @@ Thumbs.db
 *.bak
 *.swp
 
+# Deployment backups
+requirements-full.txt
+
 # Redis
 dump.rdb
 

@@ -1,0 +1,15 @@
+# Minimal requirements for Streamlit Cloud Dashboard
+# Use this for deployment: streamlit run evaluation/dashboard.py
+
+# Dashboard
+streamlit==1.35.0
+streamlit-agraph==0.0.45
+
+# HTTP requests
+requests==2.32.3
+
+# Data handling
+pandas>=2.0.0
+
+# Optional: For local development with full API
+# python-dotenv==1.0.1
