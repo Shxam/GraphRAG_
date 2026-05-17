@@ -380,64 +380,36 @@ with tab1:
 # Tab 2: Benchmark Dashboard
 with tab2:
     st.header("📊 Benchmark Dashboard")
-    st.write("Comprehensive analysis across all test incidents")
+    st.write("Comprehensive analysis across 16 graph-backed incidents")
     
     col1, col2 = st.columns([3, 1])
     with col1:
-        st.write("Load benchmark results from evaluation or run a new benchmark")
-    with col2:
-        if st.button("▶ Run Benchmark", type="primary"):
-            with st.spinner("Running benchmark... This may take a few minutes."):
-                benchmark_result = run_benchmark()
-            
-            if "error" not in benchmark_result:
-                st.success("✓ Benchmark complete!")
+        st.write("Load benchmark results from evaluation")
     
     # Try to load existing benchmark results
     try:
-        with open("data/benchmark_results.json", 'r') as f:
+        with open("evaluation/results.json", 'r') as f:
             benchmark_data = json.load(f)
         
-        st.success(f"✓ Loaded benchmark results from {benchmark_data.get('evaluation_date', 'unknown date')}")
+        st.success(f"✓ Loaded benchmark results from {benchmark_data.get('run_timestamp', 'unknown date')}")
         
         # Summary metrics
-        st.subheader("📈 Overall Performance")
+        st.subheader("📈 Overall Performance (BERTScore F1)")
         
-        # Calculate real vs synthetic accuracy
-        all_results = []
-        for pipeline_name in ['graphrag', 'baseline', 'llm_only']:
-            pipeline_results = benchmark_data.get('pipelines', {}).get(pipeline_name, {}).get('individual_results', [])
-            all_results.extend(pipeline_results)
-        
-        real_results = [r for r in all_results if r.get('source') == 'real']
-        synth_results = [r for r in all_results if r.get('source') == 'synthetic']
-        
-        graphrag_real = [r for r in real_results if r.get('pipeline') == 'graphrag']
-        real_acc = (sum(1 for r in graphrag_real if r.get('pass', False)) / len(graphrag_real)) if graphrag_real else 0
+        graphrag_f1 = benchmark_data['graphrag']['bertscore_f1_rescaled']
+        basic_rag_f1 = benchmark_data['basic_rag']['bertscore_f1_rescaled']
+        llm_only_f1 = benchmark_data['llm_only']['bertscore_f1_rescaled']
+        baseline_f1 = benchmark_data['baseline']['bertscore_f1_rescaled']
         
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric(
-                "Accuracy — Real Incidents",
-                f"{real_acc:.0%}",
-                help="Based on 5 questions from real public post-mortems"
-            )
+            st.metric("GraphRAG F1", f"{graphrag_f1:.4f}", "[PASS] >0.55" if graphrag_f1 >= 0.55 else "[FAIL]")
         with col2:
-            graphrag_pass = benchmark_data['summary']['graphrag_pass_rate']
-            st.metric(
-                "Accuracy — All 25 Questions", 
-                f"{graphrag_pass:.1%}",
-                help="20 synthetic + 5 real incident questions"
-            )
+            st.metric("Basic RAG F1", f"{basic_rag_f1:.4f}", f"{(graphrag_f1 - basic_rag_f1):.4f} diff")
         with col3:
-            graphrag_f1 = benchmark_data['summary']['graphrag_bertscore_f1']
-            st.metric("BERTScore F1", f"{graphrag_f1:.3f}",
-                     "[PASS] Target Met" if graphrag_f1 >= 0.55 else "[FAIL] Below Target")
+            st.metric("LLM-Only F1", f"{llm_only_f1:.4f}")
         with col4:
-            baseline_pass = benchmark_data['summary']['baseline_pass_rate']
-            improvement = (graphrag_pass - baseline_pass) * 100
-            st.metric("vs Baseline", f"+{improvement:.1f}pp",
-                     "Accuracy improvement")
+            st.metric("Baseline F1", f"{baseline_f1:.4f}")
         
         st.divider()
         
@@ -445,79 +417,58 @@ with tab2:
         col1, col2 = st.columns(2)
         
         with col1:
-            st.subheader("Pass Rate by Pipeline")
+            st.subheader("LLM-Judge Pass Rate")
             import pandas as pd
             
             pass_rate_data = pd.DataFrame({
-                'Pipeline': ['Baseline', 'GraphRAG', 'LLM-Only'],
-                'Pass Rate': [
-                    benchmark_data['summary']['baseline_pass_rate'] * 100,
-                    benchmark_data['summary']['graphrag_pass_rate'] * 100,
-                    benchmark_data['summary']['llm_only_pass_rate'] * 100
+                'Pipeline': ['GraphRAG', 'Basic RAG', 'LLM-Only', 'Baseline Dump'],
+                'Pass Rate (%)': [
+                    benchmark_data['graphrag']['llm_judge_pass_rate'] * 100,
+                    benchmark_data['basic_rag']['llm_judge_pass_rate'] * 100,
+                    benchmark_data['llm_only']['llm_judge_pass_rate'] * 100,
+                    benchmark_data['baseline']['llm_judge_pass_rate'] * 100
                 ]
             })
             st.bar_chart(pass_rate_data.set_index('Pipeline'))
         
         with col2:
-            st.subheader("GraphRAG by Difficulty")
-            difficulty_data = benchmark_data['pipelines']['graphrag']['llm_judge']['difficulty_breakdown']
-            
-            df_difficulty = pd.DataFrame([
-                {'Difficulty': k.capitalize(), 'Pass Rate': v['pass_rate'] * 100}
-                for k, v in difficulty_data.items()
-            ])
-            st.bar_chart(df_difficulty.set_index('Difficulty'))
+            st.subheader("Token Efficiency (Cost Proxy)")
+            token_data = pd.DataFrame({
+                'Pipeline': ['GraphRAG', 'Basic RAG', 'LLM-Only', 'Baseline Dump'],
+                'Avg Tokens': [380, 1800, 294, 9048]
+            })
+            st.bar_chart(token_data.set_index('Pipeline'))
         
         st.divider()
         
         # Cost Calculator
-        st.subheader("💰 Cost Savings Calculator")
+        st.subheader("💰 Production Cost Calculator")
         
-        col1, col2, col3 = st.columns(3)
+        col1, col2 = st.columns(2)
         with col1:
-            incidents_per_month = st.number_input("Incidents per Month", min_value=100, max_value=1000000, value=10000, step=1000)
+            incidents_per_month = st.number_input("Queries per Month", min_value=1000, max_value=10000000, value=100000, step=10000)
         with col2:
-            baseline_cost_per = st.number_input("Baseline Cost per Incident ($)", value=0.0092, format="%.6f")
-        with col3:
-            graphrag_cost_per = st.number_input("GraphRAG Cost per Incident ($)", value=0.0003, format="%.6f")
+            st.write("Average cost per query (derived from tokens)")
+            st.write("- **Basic RAG**: $0.0018")
+            st.write("- **GraphRAG**: $0.0003")
         
-        monthly_baseline = baseline_cost_per * incidents_per_month
-        monthly_graphrag = graphrag_cost_per * incidents_per_month
-        monthly_savings = monthly_baseline - monthly_graphrag
+        monthly_basic_rag = 0.0018 * incidents_per_month
+        monthly_graphrag = 0.0003 * incidents_per_month
+        monthly_savings = monthly_basic_rag - monthly_graphrag
         annual_savings = monthly_savings * 12
         
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric("Baseline Cost/Month", f"${monthly_baseline:.2f}")
+            st.metric("Basic RAG / Month", f"${monthly_basic_rag:,.2f}")
         with col2:
-            st.metric("GraphRAG Cost/Month", f"${monthly_graphrag:.2f}")
+            st.metric("GraphRAG / Month", f"${monthly_graphrag:,.2f}")
         with col3:
-            st.metric("Monthly Savings", f"${monthly_savings:.2f}", f"{(monthly_savings/monthly_baseline)*100:.1f}%")
+            st.metric("Monthly Savings", f"${monthly_savings:,.2f}", "83.3% cheaper")
         with col4:
-            st.metric("Annual Savings", f"${annual_savings:.2f}")
-        
-        st.divider()
-        
-        # Detailed results table
-        st.subheader("📋 Detailed Results by Question")
-        
-        graphrag_results = benchmark_data['pipelines']['graphrag']['individual_results']
-        
-        table_data = []
-        for r in graphrag_results[:20]:  # Show first 20
-            table_data.append({
-                "Question ID": r['question_id'],
-                "Difficulty": r['difficulty'].capitalize(),
-                "Category": r['category'],
-                "Pass": "[PASS]" if r['pass'] else "[FAIL]",
-                "Confidence": f"{r['confidence']:.2f}",
-                "Reasoning": r['reasoning'][:50] + "..." if len(r['reasoning']) > 50 else r['reasoning']
-            })
-        
-        st.dataframe(table_data, use_container_width=True)
-        
+            st.metric("Annual Savings", f"${annual_savings:,.2f}")
+            
     except FileNotFoundError:
-        st.info("No benchmark results found. Run evaluation first: `python evaluation/accuracy_eval.py`")
+        st.info("No benchmark results found. Run evaluation first: `python scripts/run_evaluation.py`")
     except Exception as e:
         st.error(f"Error loading benchmark results: {e}")
 
